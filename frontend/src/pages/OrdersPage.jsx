@@ -83,7 +83,7 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
 
   const handleAddToCart = (item) => {
     if (!item.is_available) {
-      showToast(`?{item.name} is currently out of stock`, 'warning');
+      showToast(`${item.name} is currently out of stock`, 'warning');
       return;
     }
     setCart((prev) => {
@@ -159,7 +159,7 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
       };
 
       const newOrder = await api.createOrder(orderPayload);
-      showToast(`Order #?{newOrder.order_number} sent to Kitchen successfully!`, 'success');
+      showToast(`Order #${newOrder.order_number} sent to Kitchen successfully!`, 'success');
 
       // Clear cart
       setCart([]);
@@ -182,7 +182,7 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
   const handleUpdateStatus = async (orderId, newStatus) => {
     try {
       await api.updateOrderStatus(orderId, newStatus);
-      showToast(`Order status updated to ?{newStatus.toUpperCase()}`, 'success');
+      showToast(`Order status updated to ${newStatus.toUpperCase()}`, 'success');
       const updatedOrders = await api.getOrders();
       setOrders(updatedOrders);
       if (selectedOrderForDetail && selectedOrderForDetail.id === orderId) {
@@ -199,7 +199,7 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
     if (addMoreCart.length === 0) return;
     try {
       await api.addItemsToOrder(addMoreOrder.id, addMoreCart);
-      showToast(`Additional items dispatched to Kitchen for #?{addMoreOrder.order_number}`, 'success');
+      showToast(`Additional items dispatched to Kitchen for #${addMoreOrder.order_number}`, 'success');
       setIsAddMoreItemsOpen(false);
       setAddMoreCart([]);
       const updatedOrders = await api.getOrders();
@@ -244,7 +244,7 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
         <div className="flex items-center gap-2 p-1 bg-slate-100 rounded-xl">
           <button
             onClick={() => setActiveTab('new_order')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ?{
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'new_order' ? 'bg-white text-emerald-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -252,7 +252,7 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
           </button>
           <button
             onClick={() => setActiveTab('order_list')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ?{
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'order_list' ? 'bg-white text-emerald-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -296,7 +296,7 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors shrink-0 ?{
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors shrink-0 ${
                       selectedCategory === cat
                         ? 'bg-emerald-600 text-white shadow-xs'
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -316,22 +316,35 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
                   <div
                     key={item.id}
                     onClick={() => handleAddToCart(item)}
-                    className={`p-3.5 rounded-2xl border bg-white shadow-2xs hover:shadow-md cursor-pointer transition-all flex gap-3 group relative ?{
+                    className={`p-3.5 rounded-2xl border bg-white shadow-2xs hover:shadow-md cursor-pointer transition-all flex gap-3 group relative ${
                       !item.is_available ? 'opacity-60 grayscale' : 'hover:border-emerald-300'
                     }`}
                   >
-                    {/* Item Image */}
-                    {item.image_url ? (
-                      <img
-                        src={item.image_url}
-                        alt={item.name}
-                        className="w-16 h-16 rounded-xl object-cover shrink-0 border border-slate-100"
-                      />
-                    ) : (
-                      <div className="w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 shrink-0">
-                        <UtensilsCrossed className="w-6 h-6" />
+                    {/* Item Image with Fallback */}
+                    <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-emerald-50/60 border border-slate-100 relative flex items-center justify-center">
+                      {item.image_url ? (
+                        <img
+                          src={item.image_url}
+                          alt={item.name}
+                          referrerPolicy="no-referrer"
+                          crossOrigin="anonymous"
+                          loading="lazy"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const fallback = e.currentTarget.nextElementSibling;
+                            if (fallback) fallback.style.display = 'flex';
+                          }}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : null}
+                      <div
+                        style={{ display: item.image_url ? 'none' : 'flex' }}
+                        className="w-full h-full flex flex-col items-center justify-center text-emerald-700 bg-emerald-50/70"
+                      >
+                        <UtensilsCrossed className="w-6 h-6 text-emerald-600" />
+                        <span className="text-[9px] font-bold mt-0.5">{item.category?.slice(0, 4)}</span>
                       </div>
-                    )}
+                    </div>
 
                     <div className="min-w-0 flex-1 flex flex-col justify-between">
                       <div>
@@ -340,7 +353,7 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
                             {item.name}
                           </h4>
                           <span
-                            className={`w-3 h-3 rounded-full shrink-0 ?{
+                            className={`w-3 h-3 rounded-full shrink-0 ${
                               item.is_veg ? 'border-2 border-emerald-600' : 'border-2 border-rose-600'
                             }`}
                             title={item.is_veg ? 'Vegetarian' : 'Non-Vegetarian'}
@@ -350,7 +363,7 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
                       </div>
 
                       <div className="flex items-center justify-between pt-1">
-                        <span className="text-xs font-extrabold text-slate-900">?{item.price.toFixed(2)}</span>
+                        <span className="text-xs font-extrabold text-slate-900">₹{item.price.toFixed(2)}</span>
                         {inCart ? (
                           <span className="px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 text-[10px] font-bold">
                             {inCart.quantity} in cart
@@ -387,7 +400,7 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
                   <button
                     type="button"
                     onClick={() => setOrderType('dine_in')}
-                    className={`py-2 rounded-xl text-xs font-bold border transition-colors ?{
+                    className={`py-2 rounded-xl text-xs font-bold border transition-colors ${
                       orderType === 'dine_in'
                         ? 'bg-slate-900 text-white border-slate-900'
                         : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
@@ -398,7 +411,7 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
                   <button
                     type="button"
                     onClick={() => setOrderType('takeaway')}
-                    className={`py-2 rounded-xl text-xs font-bold border transition-colors ?{
+                    className={`py-2 rounded-xl text-xs font-bold border transition-colors ${
                       orderType === 'takeaway'
                         ? 'bg-slate-900 text-white border-slate-900'
                         : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
@@ -457,11 +470,11 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-bold text-slate-800 truncate">{item.item_name}</span>
                         <span className="font-bold text-slate-900 shrink-0">
-                          ?{(item.price * item.quantity).toFixed(2)}
+                          ₹{(item.price * item.quantity).toFixed(2)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-slate-400">?{item.price.toFixed(2)} each</span>
+                        <span className="text-slate-400">₹{item.price.toFixed(2)} each</span>
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
@@ -506,7 +519,7 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
                 </div>
 
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-slate-600 font-medium">Discount (?):</span>
+                  <span className="text-slate-600 font-medium">Discount (₹):</span>
                   <input
                     type="number"
                     min="0"
@@ -522,21 +535,21 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
               <div className="pt-2 border-t border-slate-100 space-y-1.5 text-xs">
                 <div className="flex justify-between text-slate-500">
                   <span>Subtotal:</span>
-                  <span>?{subtotal.toFixed(2)}</span>
+                  <span>₹{subtotal.toFixed(2)}</span>
                 </div>
                 {currentDiscount > 0 && (
                   <div className="flex justify-between text-emerald-600 font-semibold">
                     <span>Discount:</span>
-                    <span>-?{currentDiscount.toFixed(2)}</span>
+                    <span>-₹{currentDiscount.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-slate-500">
                   <span>Tax (5% GST):</span>
-                  <span>?{tax.toFixed(2)}</span>
+                  <span>₹{tax.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm font-extrabold text-slate-900 pt-1.5 border-t border-slate-200">
                   <span>Final Total:</span>
-                  <span className="text-emerald-700 text-base">?{finalTotal.toFixed(2)}</span>
+                  <span className="text-emerald-700 text-base">₹{finalTotal.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -548,7 +561,7 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
                 className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
               >
                 <ShoppingBag className="w-4 h-4" />
-                <span>{isSubmitting ? 'Sending to Kitchen...' : `Place Order • $?{finalTotal.toFixed(2)}`}</span>
+                <span>{isSubmitting ? 'Sending to Kitchen...' : `Place Order • ₹${finalTotal.toFixed(2)}`}</span>
               </button>
             </div>
           </div>
@@ -577,7 +590,7 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
                 <button
                   key={st}
                   onClick={() => setOrderStatusFilter(st)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize whitespace-nowrap transition-colors shrink-0 ?{
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize whitespace-nowrap transition-colors shrink-0 ${
                     orderStatusFilter === st
                       ? 'bg-slate-900 text-white shadow-xs'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -610,10 +623,10 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
                     <td className="py-3 px-3 font-semibold text-slate-700">{ord.table_number || 'Takeaway'}</td>
                     <td className="py-3 px-3 text-slate-600">{ord.customer_name}</td>
                     <td className="py-3 px-3 text-slate-500 max-w-[200px] truncate">
-                      {ord.items?.map((i) => `?{i.quantity}x ?{i.item_name}`).join(', ')}
+                      {ord.items?.map((i) => `${i.quantity}x ${i.item_name}`).join(', ')}
                     </td>
                     <td className="py-3 px-3 text-right font-extrabold text-slate-900">
-                      ?{ord.final_amount?.toFixed(2)}
+                      ₹{ord.final_amount?.toFixed(2)}
                     </td>
                     <td className="py-3 px-3 text-center">
                       <StatusBadge status={ord.status} />
@@ -672,8 +685,8 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
       <Modal
         isOpen={!!selectedOrderForDetail}
         onClose={() => setSelectedOrderForDetail(null)}
-        title={`Order Details: ?{selectedOrderForDetail?.order_number}`}
-        subtitle={`Table ?{selectedOrderForDetail?.table_number} • ?{selectedOrderForDetail?.order_type?.toUpperCase()}`}
+        title={`Order Details: ${selectedOrderForDetail?.order_number}`}
+        subtitle={`Table ${selectedOrderForDetail?.table_number} • ${selectedOrderForDetail?.order_type?.toUpperCase()}`}
       >
         {selectedOrderForDetail && (
           <div className="space-y-4 text-xs">
@@ -700,7 +713,7 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
                 <button
                   key={st}
                   onClick={() => handleUpdateStatus(selectedOrderForDetail.id, st)}
-                  className={`px-3 py-1 rounded-lg font-bold capitalize transition-colors ?{
+                  className={`px-3 py-1 rounded-lg font-bold capitalize transition-colors ${
                     selectedOrderForDetail.status === st
                       ? 'bg-slate-900 text-white'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -729,9 +742,9 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
                       <tr key={idx}>
                         <td className="py-2 px-3 font-medium text-slate-800">{item.item_name}</td>
                         <td className="py-2 px-2 text-center font-bold">{item.quantity}</td>
-                        <td className="py-2 px-2 text-right text-slate-600">?{item.unit_price?.toFixed(2)}</td>
+                        <td className="py-2 px-2 text-right text-slate-600">₹{item.unit_price?.toFixed(2)}</td>
                         <td className="py-2 px-3 text-right font-bold text-slate-900">
-                          ?{item.total_price?.toFixed(2)}
+                          ₹{item.total_price?.toFixed(2)}
                         </td>
                       </tr>
                     ))}
@@ -752,15 +765,15 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
             <div className="p-3 bg-slate-50 rounded-xl space-y-1 text-right">
               <div className="flex justify-between text-slate-500">
                 <span>Subtotal:</span>
-                <span>?{selectedOrderForDetail.subtotal?.toFixed(2)}</span>
+                <span>₹{selectedOrderForDetail.subtotal?.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-slate-500">
                 <span>Tax (5%):</span>
-                <span>?{selectedOrderForDetail.tax_amount?.toFixed(2)}</span>
+                <span>₹{selectedOrderForDetail.tax_amount?.toFixed(2)}</span>
               </div>
               <div className="flex justify-between font-bold text-slate-900 text-sm pt-1 border-t border-slate-200">
                 <span>Final Total:</span>
-                <span className="text-emerald-700">?{selectedOrderForDetail.final_amount?.toFixed(2)}</span>
+                <span className="text-emerald-700">₹{selectedOrderForDetail.final_amount?.toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -771,8 +784,8 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
       <Modal
         isOpen={isAddMoreItemsOpen}
         onClose={() => setIsAddMoreItemsOpen(false)}
-        title={`Add More Items: Order #?{addMoreOrder?.order_number}`}
-        subtitle={`Table ?{addMoreOrder?.table_number}`}
+        title={`Add More Items: Order #${addMoreOrder?.order_number}`}
+        subtitle={`Table ${addMoreOrder?.table_number}`}
       >
         <form onSubmit={handleAddMoreItemsSubmit} className="space-y-4 text-xs">
           <p className="text-slate-500">Select additional items to dispatch to the kitchen for this order:</p>
@@ -784,7 +797,7 @@ export default function OrdersPage({ setCurrentPage, initialSelectedTable, setSe
                 <div key={m.id} className="py-2 flex items-center justify-between">
                   <div>
                     <span className="font-bold text-slate-800">{m.name}</span>
-                    <span className="text-slate-400 block text-[11px]">?{m.price.toFixed(2)}</span>
+                    <span className="text-slate-400 block text-[11px]">₹{m.price.toFixed(2)}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     {inAdd ? (

@@ -301,13 +301,24 @@ export default function MenuPage() {
                   <img
                     src={item.image_url}
                     alt={item.name}
+                    referrerPolicy="no-referrer"
+                    crossOrigin="anonymous"
+                    loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const fallback = e.currentTarget.nextElementSibling;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-300">
-                    <UtensilsCrossed className="w-12 h-12" />
-                  </div>
-                )}
+                ) : null}
+                <div
+                  style={{ display: item.image_url ? 'none' : 'flex' }}
+                  className="w-full h-full flex flex-col items-center justify-center text-emerald-700 bg-emerald-50/70"
+                >
+                  <UtensilsCrossed className="w-12 h-12 text-emerald-600 mb-1" />
+                  <span className="text-xs font-bold">{item.category}</span>
+                </div>
 
                 {/* Dietary Badge */}
                 <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-xs px-2 py-0.5 rounded-full flex items-center gap-1.5 text-[11px] font-bold shadow-xs">

@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   backend:
+    image: srihariv053/dineflow-backend:latest
     build:
       context: .
       dockerfile: backend/Dockerfile
@@ -15,6 +16,7 @@ services:
       - dineflow-data:/app/backend
 
   frontend:
+    image: srihariv053/dineflow-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
